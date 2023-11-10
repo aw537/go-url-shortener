@@ -89,10 +89,20 @@ func statsHandler(writer http.ResponseWriter, request *http.Request) {
 	writer.Write([]byte(fmt.Sprintf("Access count for %s: %d", code, count)))
 }
 
+func rootHandler(writer http.ResponseWriter, request *http.Request) {
+	if request.URL.Path != "/" {
+		http.NotFound(writer, request)
+		return
+	}
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte("Welcome to the URL Shortener Service!"))
+}
+
 func main() {
-	http.HandleFunc("/", redirectHandler)
+	http.HandleFunc("/", rootHandler)
+	http.HandleFunc("/redirect", redirectHandler)
 	http.HandleFunc("/shorten", shortenURLHandler)
-	http.HandleFunc("/stats/", statsHandler)
+	http.HandleFunc("/stats", statsHandler)
 	log.Println("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
