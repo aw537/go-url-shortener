@@ -15,7 +15,7 @@ func TestGenerateShortURL(t *testing.T) {
 		expected int // the expected length of the short URL
 	}{
 		{"Standard URL", "https://example.com/path", 8},
-		{"Empty String", "", 8},
+		{"Empty URL", "", 8},
 		{"URL with Query", "https://example.com/path?query=parameter", 8},
 		{"URL with Anchor", "https://example.com/path#anchor", 8},
 		{"Very Long URL", strings.Repeat("a", 1000), 8},
@@ -52,6 +52,8 @@ func TestShortenURLHandler(t *testing.T) {
 		{"Valid URL", "https://example.com", http.StatusOK},
 		{"Empty URL", "", http.StatusBadRequest},
 		{"Invalid URL", "http://%zzz", http.StatusBadRequest},
+		{"Long URL Input", strings.Repeat("a", 1000), http.StatusOK},
+		{"Special Characters", "https://example.com/!$&'()*+,;=:@/", http.StatusOK},
 	}
 
 	for _, tc := range testCases {
