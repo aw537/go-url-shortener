@@ -26,7 +26,7 @@ func shortenURLHandler(writer http.ResponseWriter, request *http.Request) {
 	// Parse the long URL from the request
 	longURL := request.URL.Query().Get("url")
 	if longURL == "" {
-		http.Error(writer, "Missing URL parameter", http.StatusBadRequest)
+		http.Error(writer, "Missing URL", http.StatusBadRequest)
 		return
 	}
 
@@ -38,7 +38,7 @@ func shortenURLHandler(writer http.ResponseWriter, request *http.Request) {
 	mapMutex.Unlock()
 
 	// Respond with the short URL
-	fmt.Fprintf(writer, "Short URL is: %s", shortURL)
+	fmt.Fprintf(writer, "The shortened URL is: %s", shortURL)
 }
 
 func main() {

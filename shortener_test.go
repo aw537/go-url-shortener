@@ -14,7 +14,7 @@ func TestGenerateShortURL(t *testing.T) {
 		longURL  string
 		expected int // the expected length of the short URL
 	}{
-		{"Standard URL", "https://example.com/path", 8},
+		{"Valid URL", "https://example.com/path", 8},
 		{"Empty URL", "", 8},
 		{"URL with Query", "https://example.com/path?query=parameter", 8},
 		{"URL with Anchor", "https://example.com/path#anchor", 8},
