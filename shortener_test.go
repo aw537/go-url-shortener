@@ -1,12 +1,14 @@
 package main
 
 import (
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
 func TestGenerateShortURL(t *testing.T) {
-	// Define a table of test cases
+
 	testCases := []struct {
 		name     string
 		longURL  string
@@ -35,6 +37,51 @@ func TestGenerateShortURL(t *testing.T) {
 				t.Errorf("generateShortURL(%q) generated a duplicate short URL: %v", tc.longURL, shortURL)
 			} else {
 				uniqueShortURLs[shortURL] = true
+			}
+		})
+	}
+}
+
+func TestShortenURLHandler(t *testing.T) {
+
+	testCases := []struct {
+		name           string
+		urlParam       string
+		expectedStatus int
+	}{
+		{"Valid URL", "https://example.com", http.StatusOK},
+		{"Empty URL", "", http.StatusBadRequest},
+		{"Invalid URL", "http://%zzz", http.StatusBadRequest},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			// Create a request to pass to the handler.
+			req, err := http.NewRequest("GET", "/shorten?url="+tc.urlParam, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			// ResponseRecorder records the response.
+			rr := httptest.NewRecorder()
+			handler := http.HandlerFunc(shortenURLHandler)
+
+			handler.ServeHTTP(rr, req)
+
+			// Verify status code is what we expect.
+			if status := rr.Code; status != tc.expectedStatus {
+				t.Errorf("handler returned wrong status code: got %v want %v",
+					status, tc.expectedStatus)
+			}
+
+			// Verify response body is what we expect.
+			if tc.expectedStatus == http.StatusOK {
+				expected := "Short URL is: "
+				if rr.Body.String()[:len(expected)] != expected {
+					t.Errorf("handler returned unexpected body: got %v want %v",
+						rr.Body.String(), expected)
+				}
 			}
 		})
 	}
