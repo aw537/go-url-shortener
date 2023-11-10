@@ -105,6 +105,8 @@ func TestRedirectHandler(t *testing.T) {
 	}{
 		{"Valid Redirect", "abc123", "http://example.com", http.StatusFound},
 		{"Non-existent Code", "doesNotExist", "", http.StatusNotFound},
+		{"Special Characters", "a!b@c#d$", "", http.StatusNotFound},
+		{"Case Sensitivity", "ABC123", "", http.StatusNotFound},
 	}
 
 	for _, tc := range testCases {
