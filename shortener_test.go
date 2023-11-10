@@ -79,7 +79,7 @@ func TestShortenURLHandler(t *testing.T) {
 
 			// Verify response body is what we expect.
 			if tc.expectedStatus == http.StatusOK {
-				expected := "Short URL is: "
+				expected := "The shortened URL is: "
 				if rr.Body.String()[:len(expected)] != expected {
 					t.Errorf("handler returned unexpected body: got %v want %v",
 						rr.Body.String(), expected)

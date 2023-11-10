@@ -23,6 +23,11 @@ func generateShortURL(longURL string) string {
 }
 
 func shortenURLHandler(writer http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		http.Error(writer, "Method is not supported.", http.StatusNotFound)
+		return
+	}
+
 	// Parse the long URL from the request
 	longURL := request.URL.Query().Get("url")
 	if longURL == "" {
