@@ -15,6 +15,9 @@ var (
 	mapMutex = &sync.Mutex{}
 )
 
+// keeps track of the amount of times the URL has been accessed
+var urlAccessCount = make(map[string]int)
+
 func generateShortURL(longURL string) string {
 	// SHA256 to hash the URL and return the first 8 characters
 	hasher := sha256.New()
@@ -54,21 +57,43 @@ func redirectHandler(writer http.ResponseWriter, request *http.Request) {
 	// Look up the code in the URL map
 	mapMutex.Lock()
 	longURL, ok := urlMap[code]
-	mapMutex.Unlock()
 
 	if !ok {
 		// If the code is not found, return a 404 not found error
 		http.NotFound(writer, request)
 		return
+	} else {
+		urlAccessCount[code]++
 	}
+	mapMutex.Unlock()
 
 	// Redirect to the original URL
 	http.Redirect(writer, request, longURL, http.StatusFound)
 }
 
+func statsHandler(writer http.ResponseWriter, request *http.Request) {
+	// Extract the code from the request path
+	code := request.URL.Path[len("/stats/"):]
+
+	// Retrieve and return the access count for the code
+	mapMutex.Lock()
+	count, ok := urlAccessCount[code]
+	mapMutex.Unlock()
+
+	if !ok {
+		http.Error(writer, "Short URL not found", http.StatusNotFound)
+		return
+	}
+
+	// Respond with the count
+	writer.WriteHeader(http.StatusOK)
+	writer.Write([]byte(fmt.Sprintf("Access count for %s: %d", code, count)))
+}
+
 func main() {
 	http.HandleFunc("/", redirectHandler)
 	http.HandleFunc("/shorten", shortenURLHandler)
+	http.HandleFunc("/stats/", statsHandler)
 	log.Println("Starting server on :8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
