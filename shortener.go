@@ -13,10 +13,9 @@ var (
 	// A map to store the URL mappings, with a mutex for concurrent access
 	urlMap   = make(map[string]string)
 	mapMutex = &sync.Mutex{}
+	// keeps track of the amount of times the URL has been accessed
+	urlAccessCount = make(map[string]int)
 )
-
-// keeps track of the amount of times the URL has been accessed
-var urlAccessCount = make(map[string]int)
 
 func generateShortURL(longURL string) string {
 	// SHA256 to hash the URL and return the first 8 characters
