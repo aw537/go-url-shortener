@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -133,6 +134,44 @@ func TestRedirectHandler(t *testing.T) {
 				if location.String() != tc.expectedURL {
 					t.Errorf("Expected redirect to %q, got %q", tc.expectedURL, location.String())
 				}
+			}
+		})
+	}
+}
+
+func TestStatsHandler(t *testing.T) {
+
+	urlAccessCount["new123"] = 0
+	urlAccessCount["abc123"] = 3
+	urlAccessCount["xyz789"] = 10
+
+	// Define test cases
+	testCases := []struct {
+		name         string
+		shortCode    string
+		expectedBody string
+		expectedCode int
+	}{
+		{"Existing Short URL", "abc123", "Access count for abc123: 3", http.StatusOK},
+		{"Non-Existent Short URL", "nope123", "Short URL not found\n", http.StatusNotFound},
+		{"Zero Accesses", "new123", "Access count for new123: 0", http.StatusOK},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", fmt.Sprintf("/stats/%s", tc.shortCode), nil)
+			w := httptest.NewRecorder()
+
+			statsHandler(w, req)
+
+			// Verify the status code
+			if w.Code != tc.expectedCode {
+				t.Errorf("Expected status code %d, got %d", tc.expectedCode, w.Code)
+			}
+
+			// Verify the body of the response
+			if w.Body.String() != tc.expectedBody {
+				t.Errorf("Expected body %q, got %q", tc.expectedBody, w.Body.String())
 			}
 		})
 	}
