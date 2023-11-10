@@ -88,3 +88,50 @@ func TestShortenURLHandler(t *testing.T) {
 		})
 	}
 }
+
+func TestRedirectHandler(t *testing.T) {
+	// Initialize the URL map with some data for testing.
+	urlMap = map[string]string{
+		"abc123": "http://example.com",
+		"xyz789": "http://example.org",
+	}
+
+	// Define test cases
+	testCases := []struct {
+		name         string
+		shortCode    string
+		expectedURL  string
+		expectedCode int
+	}{
+		{"Valid Redirect", "abc123", "http://example.com", http.StatusFound},
+		{"Non-existent Code", "doesNotExist", "", http.StatusNotFound},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create a new HTTP request to the short URL
+			req := httptest.NewRequest("GET", "/"+tc.shortCode, nil)
+			// Create a ResponseRecorder to record the response
+			w := httptest.NewRecorder()
+
+			// Call the handler function
+			redirectHandler(w, req)
+
+			// Check the status code
+			if w.Code != tc.expectedCode {
+				t.Errorf("Expected status code %d, got %d", tc.expectedCode, w.Code)
+			}
+
+			// If a redirect is expected, check the Location header
+			if tc.expectedCode == http.StatusFound {
+				location, err := w.Result().Location()
+				if err != nil {
+					t.Fatal(err)
+				}
+				if location.String() != tc.expectedURL {
+					t.Errorf("Expected redirect to %q, got %q", tc.expectedURL, location.String())
+				}
+			}
+		})
+	}
+}
